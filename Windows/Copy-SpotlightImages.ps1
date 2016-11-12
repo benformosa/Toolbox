@@ -10,24 +10,27 @@ By default, images are saved to a folder "Spotlight" in your Pictures library. P
 Path to copy images to.
 
 .PARAMETER NoSubFolders
-Copy all images to the festination, rather than to a "Landscape" or "Portrait" subfolder.
+Copy all images to the destination, rather than to a "Landscape" or "Portrait" subfolder.
 
-.PARAMETER LandscapeOnly
-Only copy images which are wider than they are tall.
+.PARAMETER NoLandscape
+Don't copy images which are wider than they are tall.
 
-.PARAMETER PortraitOnly
-Only copy images which are taller than they are wide.
+.PARAMETER NoPortrait
+Don't copy images which are taller than they are wide.
 
-.PARAMTER Force
+.PARAMETER Force
 Always copy images, even if they already exist in the destination.
+
+.EXAMPLE
+C:\PS> Copy-SpotlightImages.ps1 C:\Wallpapers -NoPortrait -NoSubFolders
 #>
 
-[CmdletBinding(SupportsShouldProcess)]
+[CmdletBinding()]
 Param(
-[string] $Destination = (Join-Path $env:USERPROFILE "Pictures\Spotlight"),
+[Parameter(Position=1)] [string] $Destination = (Join-Path $env:USERPROFILE "Pictures\Spotlight"),
 [switch] $NoSubFolders,
-[Parameter(ParameterSetName='LandscapeOnly')] [switch] $LandscapeOnly,
-[Parameter(ParameterSetName='PortraitOnly')] [switch] $PortraitOnly,
+[switch] $NoLandscape,
+[switch] $NoPortrait,
 [switch] $Force
 )
 
@@ -36,22 +39,25 @@ begin {
     $MinimumImageSize = 500
     $Landscape = "Landscape"
     $Portrait = "Portrait"
-
-    New-Item -ItemType Directory -Path $Destination -Force | Out-Null
-    Write-Verbose "Created directory $($Destination)"
-    if(-not $NoSubFolders) {
-        if(-not $PortraitOnly) {
-            New-Item -ItemType Directory -Path (Join-Path $Destination $Landscape) -Force | Out-Null
-            Write-Verbose "Created directory $(Join-Path $Destination $Landscape)"
-        }
-        if(-not $LandscapeOnly) {
-            New-Item -ItemType Directory -Path (Join-Path $Destination $Portrait) -Force | Out-Null
-            Write-Verbose "Created directory $(Join-Path $Destination $Portrait)"
-        }
-    }
+    $LandscapePath = (Join-Path $Destination $Landscape)
+    $PortraitPath = (Join-Path $Destination $Portrait)
+    $PSBoundParameters.Confirm = $False
 }
 
 process {
+    New-Item -ItemType Directory -Path $Destination -Force | Out-Null
+    Write-Verbose "Created directory $($Destination)"
+    if(-not $NoSubFolders) {
+        if(-not $NoLandscape) {
+            New-Item -ItemType Directory -Path $LandscapePath -Force | Out-Null
+            Write-Verbose "Created directory $($LandscapePath)"
+        }
+        if(-not $NoPortrait) {
+            New-Item -ItemType Directory -Path $PortraitPath -Force | Out-Null
+            Write-Verbose "Created directory $($PortraitPath)"
+        }
+    }
+
     foreach($File in (Get-ChildItem $SpotlightPath)) {
         try {
             # This will cause an exception for a file that isn't an image
@@ -74,13 +80,15 @@ process {
 
                 # Rename the file with a valid file extension
                 $DestinationFile = Join-Path $DestinationDir "$($File.name).jpg"
-
+                
+                # Test if a file with the same name already exists. Always False is Force is set
                 $Exists = -not $Force -and (Test-Path $DestinationFile)
 
+                # Only copy if the file if it doesn't already exist, and it's aspect hasn't been excluded
                 if(-not $Exists -and
-                    ($Aspect -eq $Portrait -and -not $LandscapeOnly) -or
-                    ($Aspect -eq $Landscape -and -not $PortraitOnly)
-                    ) {
+                    (($Aspect -eq $Portrait -and -not $NoPortrait) -or
+                    ($Aspect -eq $Landscape -and -not $NoLandscape)
+                    )) {
                     Copy-Item $File.FullName -Destination $DestinationFile
                     Write-Verbose "Copied $($Aspect) image: $($DestinationFile)"
                 }

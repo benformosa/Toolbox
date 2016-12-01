@@ -41,7 +41,8 @@ begin {
     $Portrait = "Portrait"
     $LandscapePath = (Join-Path $Destination $Landscape)
     $PortraitPath = (Join-Path $Destination $Portrait)
-    $PSBoundParameters.Confirm = $False
+    $PSBoundParameters.Confirm = $false
+    $Hashes = Get-ChildItem -Path $Destination -Recurse | Get-FileHash | Select-Object -ExpandProperty Hash
 }
 
 process {
@@ -65,7 +66,6 @@ process {
 
             # Filter out images which are too small to be wallpapers
             if ($Image.width -gt $MinimumImageSize -and $Image.height -gt $MinimumImageSize) {
-
                 if($Image.width -gt $Image.height) {
                     $Aspect = $Landscape
                 } else {
@@ -81,16 +81,26 @@ process {
                 # Rename the file with a valid file extension
                 $DestinationFile = Join-Path $DestinationDir "$($File.name).jpg"
                 
-                # Test if a file with the same name already exists. Always False is Force is set
-                $Exists = -not $Force -and (Test-Path $DestinationFile)
+                # Test if a file with the same name or data already exists. Always copy the file is Force is set
+               if($Force) {
+                    $doCopy = $true
+                } else {
+                    $FileHash = (Get-FileHash -Path $File.FullName).hash
+                    $HashOK = $Hashes -notcontains $FileHash
+                    $FileNameOK = Test-Path -Path $DestinationFile
+                    $doCopy = $HashOK -and $FileNameOK
+                }
 
-                # Only copy if the file if it doesn't already exist, and it's aspect hasn't been excluded
-                if(-not $Exists -and
+                # Only copy the file if doCopy is True, and it's aspect hasn't been excluded
+                if($doCopy -and
                     (($Aspect -eq $Portrait -and -not $NoPortrait) -or
                     ($Aspect -eq $Landscape -and -not $NoLandscape)
                     )) {
                     Copy-Item $File.FullName -Destination $DestinationFile
                     Write-Verbose "Copied $($Aspect) image: $($DestinationFile)"
+                    if(-not $Force) {
+                        $Hashes += $FileHash
+                    }
                 }
             }
         } catch {

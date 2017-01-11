@@ -14,13 +14,18 @@ pscustomobject
 
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory=$true)]
     [String]
     $ResourceGroupName
 )
 
-$vms = Get-AzureRmVM -ResourceGroupName $ResourceGroupName
-$nics = Get-AzureRmNetworkInterface -ResourceGroupName $ResourceGroupName | Where-Object VirtualMachine -NE $null
+if($ResourceGroupName) {
+    $vms = Get-AzureRmVM -ResourceGroupName $ResourceGroupName
+    $nics = Get-AzureRmNetworkInterface -ResourceGroupName $ResourceGroupName | Where-Object VirtualMachine -NE $null
+} else {
+    $vms = Get-AzureRmVM
+    $nics = Get-AzureRmNetworkInterface | Where-Object VirtualMachine -NE $null
+}
+
 
 $output = @()
 foreach($nic in $nics)
@@ -35,4 +40,5 @@ foreach($nic in $nics)
 
 $output | ForEach-Object {
     ( [pscustomobject] [hashtable] $_ )
-} | Select-Object Name, PrivateIPAddress, PrivateIpAllocationMethod
+} | Select-Object Name, PrivateIPAddress, PrivateIpAllocationMethod |
+    Sort-Object -Property { [System.Version]$_.PrivateIPAddress } # Treat dotted decimal IP Addresses as version numbers for sorting

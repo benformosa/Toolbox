@@ -49,11 +49,11 @@ param(
  [string]
  $deploymentName,
 
- [Parameter(Mandatory=$True,ParameterSetName=’templateUri’)]
+ [Parameter(Mandatory=$True,ParameterSetName='templateUri')]
  [string]
  $templateUri,
 
- [Parameter(Mandatory=$True,ParameterSetName=’templateFile’)]
+ [Parameter(Mandatory=$True,ParameterSetName='templateFile')]
  [string]
  $templateFilePath,
 

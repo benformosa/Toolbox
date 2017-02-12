@@ -14,9 +14,6 @@
  .PARAMETER resourceGroupLocation
     Optional, a resource group location. If specified, will try to create a new resource group in this location. If not specified, assumes resource group is existing.
 
- .PARAMETER deploymentName
-    The deployment name.
-
  .PARAMETER templateFilePath
     Path to the template file.
 
@@ -43,11 +40,7 @@ param(
  $resourceGroupName,
 
  [string]
- $resourceGroupLocation,
-
- [Parameter(Mandatory=$True)]
- [string]
- $deploymentName,
+ $resourceGroupLocation = "australiaeast",
 
  [Parameter(Mandatory=$True,ParameterSetName='templateUri')]
  [string]

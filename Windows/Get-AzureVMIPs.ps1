@@ -18,16 +18,19 @@ param(
     $ResourceGroupName
 )
 
+$params = @{}
 if($ResourceGroupName) {
-    $vms = Get-AzureRmVM -ResourceGroupName $ResourceGroupName
-    $nics = Get-AzureRmNetworkInterface -ResourceGroupName $ResourceGroupName | Where-Object VirtualMachine -NE $null
-} else {
-    $vms = Get-AzureRmVM
-    $nics = Get-AzureRmNetworkInterface | Where-Object VirtualMachine -NE $null
+    $params += @{
+        ResourceGroupName = $ResourceGroupName
+    }
 }
 
+$vms = Get-AzureRmVM @params
+$nics = Get-AzureRmNetworkInterface @params | Where-Object VirtualMachine -NE $null
 
 $output = @()
+
+# Get PrivateIPAddress of each VM
 foreach($nic in $nics)
 {
     $vm = $vms | Where-Object -Property Id -EQ $nic.VirtualMachine.id
@@ -38,6 +41,21 @@ foreach($nic in $nics)
     }
 }
 
+# Get PrivateIPAddress of each VM Scale Set instance
+(Get-AzureRmVmss @params) | ForEach-Object {
+    $VMSSName = $_.Name
+    $ResourceGroup = $_.ResourceGroupName
+    Get-AzureRmVmssVM -ResourceGroupName $ResourceGroup -VMScaleSetName $VMSSName | ForEach-Object {
+        $VMSSVM = Get-AzureRmVmssVM -ResourceGroupName $ResourceGroup -VMScaleSetName $VMSSName -InstanceId $_.InstanceID
+        $output += @{
+            Name = $VMSSVM.name
+            PrivateIpAddress = (Get-AzureRmResource -Resourceid $VMSSVM.NetworkProfile.NetworkInterfaces.Id).Properties.IpConfigurations.Properties.PrivateIpAddress
+            PrivateIpAllocationMethod = (Get-AzureRmResource -Resourceid $VMSSVM.NetworkProfile.NetworkInterfaces.Id).Properties.IpConfigurations.Properties.PrivateIpAllocationMethod
+        }
+    }
+}
+
+# Output as a pscustomobject
 $output | ForEach-Object {
     ( [pscustomobject] [hashtable] $_ )
 } | Select-Object Name, PrivateIPAddress, PrivateIpAllocationMethod |

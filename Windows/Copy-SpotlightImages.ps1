@@ -72,6 +72,7 @@ process {
 
     # Loop over all files in source directory
     foreach($File in (Get-ChildItem -File $Source)) {
+        $Image = $null
         try  {
             # Open file as Drawing.Image from a FileStream
             $FileStream = New-Object IO.FileStream(
@@ -82,7 +83,11 @@ process {
             )
             $Image = [System.Drawing.Image]::FromStream($FileStream)
             Write-Verbose "Copy-SpotlightImages: $($File.Name) opened"
+        } catch [System.Management.Automation.MethodInvocationException] {
+            Write-Verbose "Copy-SpotlightImages: $($File.Name) is not an image"
+        }
 
+        if($Image) {
             # Filter out images which are too small to be wallpapers
             if ($Image.width -gt $MinimumImageSize -and $Image.height -gt $MinimumImageSize) {
                 # Determine the aspect of the image
@@ -136,8 +141,6 @@ process {
             } else {
                 Write-Verbose "Copy-SpotlightImages: $($File.Name) is too small. Width: $($Image.width), Height: $($Image.height)"
             }
-        } catch {
-            Write-Verbose "Copy-SpotlightImages: $($File.Name) is not an image"
         }
     }
 }

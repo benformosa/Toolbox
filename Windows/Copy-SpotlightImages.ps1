@@ -28,7 +28,7 @@ Only copy images with a height and width of this many pixels.
 Always copy images, even if they already exist in the destination.
 
 .EXAMPLE
-C:\PS> Copy-SpotlightImages.ps1 C:\Wallpapers -NoPortrait -NoSubFolders
+C:\PS> Copy-SpotlightImages.ps1 -Destination C:\Wallpapers -NoPortrait -NoSubFolders
 #>
 
 [CmdletBinding(SupportsShouldProcess=$True, ConfirmImpact='Low')]

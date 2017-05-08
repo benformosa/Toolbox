@@ -72,7 +72,6 @@ process {
 
     # Loop over all files in source directory
     foreach($File in (Get-ChildItem -File $Source)) {
-        $Image = $null
         try  {
             # Open file as Drawing.Image from a FileStream
             $FileStream = New-Object IO.FileStream(
@@ -85,62 +84,63 @@ process {
             Write-Verbose "Copy-SpotlightImages: $($File.Name) opened"
         } catch [System.Management.Automation.MethodInvocationException] {
             Write-Verbose "Copy-SpotlightImages: $($File.Name) is not an image"
+            $FileStream.Close()
+            continue
         }
 
-        if($Image) {
-            # Filter out images which are too small to be wallpapers
-            if ($Image.width -gt $MinimumImageSize -and $Image.height -gt $MinimumImageSize) {
-                # Determine the aspect of the image
-                if($Image.width -gt $Image.height) {
-                    $Aspect = $Landscape
-                } else {
-                    $Aspect = $Portrait
-                }
-                Write-Verbose "Copy-SpotlightImages: $($File.Name) Aspect is $Aspect"
-
-                # Set a destination directory
-                if($NoSubFolders) {
-                    $DestinationDir = $Destination
-                } else {
-                    $DestinationDir = Join-Path $Destination $Aspect
-                }
-                
-                # Set a file extension if one doesn't exist
-                $DestinationFile = Join-Path $DestinationDir "$($File.name)"
-                if($file.name -notmatch "\.jpe?g$") { # Don't rename if it already has the right extension. -notmatch is case-insensitive
-                    $DestinationFile += ".jpg"
-                }
-                
-                # Test if a file with the same name or data already exists. Always copy the file if -Force is used
-                if($Force) {
-                    $doCopy = $true
-                } else {
-                    $FileHash = (Get-FileHash -Path $File.FullName).hash
-                    $HashOK = $Hashes -notcontains $FileHash
-                    if(-not $HashOK) {
-                        Write-Verbose "Copy-SpotlightImages: $($File.name) filehash matches file in destination and won't be copied"
-                    }
-                    $FileNameOK = -not (Test-Path -Path $DestinationFile) # True if destination file does not exist
-                    if(-not $FileNameOK) {
-                        Write-Verbose "Copy-SpotlightImages: $($File.name) filename matches file in destination $($DestinationFile) and won't be copied"
-                    }
-                    $doCopy = $HashOK -and $FileNameOK
-                }
-                
-                # Copy the file if doCopy is True, and it's aspect hasn't been excluded
-                if($doCopy -and
-                    (($Aspect -eq $Portrait -and -not $NoPortrait) -or
-                    ($Aspect -eq $Landscape -and -not $NoLandscape)
-                    )) {
-                    Copy-Item $File.FullName -Destination $DestinationFile
-                    Write-Verbose "Copy-SpotlightImages: Copied $($File.name) to $($DestinationFile)"
-                    if(-not $Force) {
-                        $Hashes += $FileHash
-                    }
-                }
+        # Filter out images which are too small to be wallpapers
+        if ($Image.width -gt $MinimumImageSize -and $Image.height -gt $MinimumImageSize) {
+            # Determine the aspect of the image
+            if($Image.width -gt $Image.height) {
+                $Aspect = $Landscape
             } else {
-                Write-Verbose "Copy-SpotlightImages: $($File.Name) is too small. Width: $($Image.width), Height: $($Image.height)"
+                $Aspect = $Portrait
             }
+            Write-Verbose "Copy-SpotlightImages: $($File.Name) Aspect is $Aspect"
+
+            # Set a destination directory
+            if($NoSubFolders) {
+                $DestinationDir = $Destination
+            } else {
+                $DestinationDir = Join-Path $Destination $Aspect
+            }
+            
+            # Set a file extension if one doesn't exist
+            $DestinationFile = Join-Path $DestinationDir "$($File.name)"
+            if($file.name -notmatch "\.jpe?g$") { # Don't rename if it already has the right extension. -notmatch is case-insensitive
+                $DestinationFile += ".jpg"
+            }
+            
+            # Test if a file with the same name or data already exists. Always copy the file if -Force is used
+            if($Force) {
+                $doCopy = $true
+            } else {
+                $FileHash = (Get-FileHash -Path $File.FullName).hash
+                $HashOK = $Hashes -notcontains $FileHash
+                if(-not $HashOK) {
+                    Write-Verbose "Copy-SpotlightImages: $($File.name) filehash matches file in destination and won't be copied"
+                }
+                $FileNameOK = -not (Test-Path -Path $DestinationFile) # True if destination file does not exist
+                if(-not $FileNameOK) {
+                    Write-Verbose "Copy-SpotlightImages: $($File.name) filename matches file in destination $($DestinationFile) and won't be copied"
+                }
+                $doCopy = $HashOK -and $FileNameOK
+            }
+            
+            # Copy the file if doCopy is True, and it's aspect hasn't been excluded
+            if($doCopy -and
+                (($Aspect -eq $Portrait -and -not $NoPortrait) -or
+                ($Aspect -eq $Landscape -and -not $NoLandscape)
+                )) {
+                Copy-Item $File.FullName -Destination $DestinationFile
+                Write-Verbose "Copy-SpotlightImages: Copied $($File.name) to $($DestinationFile)"
+                if(-not $Force) {
+                    $Hashes += $FileHash
+                }
+            }
+        } else {
+            Write-Verbose "Copy-SpotlightImages: $($File.Name) is too small. Width: $($Image.width), Height: $($Image.height)"
         }
+        $FileStream.Close()
     }
 }

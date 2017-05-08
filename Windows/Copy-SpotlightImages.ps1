@@ -100,8 +100,11 @@ process {
                     $DestinationDir = Join-Path $Destination $Aspect
                 }
                 
-                # Rename the file with a valid file extension
-                $DestinationFile = Join-Path $DestinationDir "$($File.name).jpg"
+                # Set a file extension if one doesn't exist
+                $DestinationFile = Join-Path $DestinationDir "$($File.name)"
+                if($file.name -notmatch "\.jpe?g$") { # Don't rename if it already has the right extension. -notmatch is case-insensitive
+                    $DestinationFile += ".jpg"
+                }
                 
                 # Test if a file with the same name or data already exists. Always copy the file if -Force is used
                 if($Force) {

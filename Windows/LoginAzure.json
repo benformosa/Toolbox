@@ -1,0 +1,8 @@
+{
+    "subscriptions": {
+        "prod": "xxxxxxxx-xxxx-Mxxx-Nxxx-xxxxxxxxxxxx",
+        "zzz": "xxxxxxxx-xxxx-Mxxx-Nxxx-xxxxxxxxxxxx"
+    },
+    "tenantId": "xxxxxxxx-xxxx-Mxxx-Nxxx-xxxxxxxxxxxx",
+    "username": "user@example.com"
+}

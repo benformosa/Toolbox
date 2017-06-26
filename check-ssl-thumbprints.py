@@ -13,8 +13,8 @@ print('hostname,ipaddress,cert_cn,cert_sha1,error')
 
 for line in fileinput.input():
     hostname = line.rstrip()
-    ip = socket.gethostbyname(hostname)
     try:
+        ip = socket.gethostbyname(hostname)
         # Create the ssl socket
         timeout = 2
         context = ssl.create_default_context()
@@ -34,4 +34,4 @@ for line in fileinput.input():
         print('{},{},{},{},'.format(hostname, ip, cn, digest))
     except:
         err = sys.exc_info()[0]
-        print("{},{},,,No connection: {}".format(hostname, ip, err))
+        print("{},,,,No connection: {}".format(hostname, err))

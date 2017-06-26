@@ -1,31 +1,37 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 """
 Given a list of hostnames, get the thumbprint of the SSL certificate
 """
-from socket import *
 import OpenSSL
+import fileinput
+import socket
 import ssl
 import sys
 
 # Print column names
 print('hostname,ipaddress,cert_cn,cert_sha1,error')
 
-filename = sys.argv[1]
-with open(filename, 'r') as f:
-    for line in f:
-        hostname = line.rstrip()
-        ip = gethostbyname(hostname)
-        try:
-            # Test if we can connect to port 443
-            # I don't know how to set a timeout on ssl.get_server_certificate!
-            timeout = 2
-            connection = create_connection((hostname, 443), timeout)
-            connection.close()
+for line in fileinput.input():
+    hostname = line.rstrip()
+    ip = socket.gethostbyname(hostname)
+    try:
+        # Create the ssl socket
+        timeout = 2
+        context = ssl.create_default_context()
+        conn = context.wrap_socket(
+                socket.socket(socket.AF_INET),
+                server_hostname=hostname)
+        conn.settimeout(timeout)
+        conn.connect((hostname, 443))
 
-            cert = ssl.get_server_certificate((hostname, 443))
-            x509 = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, cert)
-            cn = x509.get_subject().commonName
-            digest = x509.digest('sha1')
-            print('{},{},{},{},'.format(hostname, ip, cn, digest))
-        except(error, timeout) as err:
-            print "{},{},,,No connection: {}".format(hostname, ip, err)
+        # Get the certificate as a DER-encoded byte sequence
+        cert = conn.getpeercert(binary_form=True)
+        # Load the certificate
+        x509 = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_ASN1, cert)
+        # Get the certificate details
+        cn = x509.get_subject().commonName
+        digest = x509.digest('sha1')
+        print('{},{},{},{},'.format(hostname, ip, cn, digest))
+    except:
+        err = sys.exc_info()[0]
+        print("{},{},,,No connection: {}".format(hostname, ip, err))

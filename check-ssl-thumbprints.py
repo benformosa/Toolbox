@@ -30,7 +30,7 @@ for line in fileinput.input():
         x509 = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_ASN1, cert)
         # Get the certificate details
         cn = x509.get_subject().commonName
-        digest = x509.digest('sha1')
+        digest = x509.digest('sha1').decode("utf-8")
         print('{},{},{},{},'.format(hostname, ip, cn, digest))
     except:
         err = sys.exc_info()[0]

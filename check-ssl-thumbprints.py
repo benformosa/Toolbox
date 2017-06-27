@@ -18,9 +18,11 @@ for line in fileinput.input():
         # Create the ssl socket
         timeout = 2
         context = ssl.create_default_context()
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE
         conn = context.wrap_socket(
                 socket.socket(socket.AF_INET),
-                server_hostname=hostname)
+                )
         conn.settimeout(timeout)
         conn.connect((hostname, 443))
 
@@ -33,5 +35,5 @@ for line in fileinput.input():
         digest = x509.digest('sha1').decode("utf-8")
         print('{},{},{},{},'.format(hostname, ip, cn, digest))
     except:
-        err = sys.exc_info()[0]
+        err = sys.exc_info()
         print("{},,,,No connection: {}".format(hostname, err))

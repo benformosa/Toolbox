@@ -24,7 +24,7 @@ Which Azure Modules to load, RM (Resource Manager), Classic or both.
 [CmdletBinding()]
 Param(
     [Parameter(Position=1)] [string] $Subscription = "prod",
-    [string] $ConfigFile = "LoginAzure.json",
+    [string] $ConfigFile = $(Join-Path $PSScriptRoot "LoginAzure.json"),
     [ValidateSet("RM","Classic","Both")] [string] $AzureDeploymentModel = "RM"
 )
 

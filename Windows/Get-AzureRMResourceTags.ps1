@@ -62,10 +62,13 @@ process {
 
         # Add a member for each TagName
         foreach ($TagName in $TagNames) {
-            $Object | Add-Member Noteproperty $TagName $Resource.Tags.$TagName
+            $Object | Add-Member Noteproperty "TAG_$TagName" $Resource.Tags.$TagName
         }
 
         $Resources += $Object
     }
+}
+
+end {
     $Resources
 }

@@ -15,7 +15,7 @@ param(
         ValueFromPipeline=$true,
         ValueFromPipelineByPropertyName=$true)
     ]
-    [object[]]
+    [object]
     $Resources,
     
     [Parameter(HelpMessage="String which tag names are prefixed with.")]
@@ -53,12 +53,12 @@ process {
                 Write-Verbose "    Found $($Tags.count) tags"
                 
                 # Update the Azure Resource
-                $AzureResource | Set-AzureRmResource -Tag $Tags
+                Set-AzureRmResource -ResourceId $AzureResource.ResourceID -Tag $Tags
             } else {
-                Write-Verbose "Could not Get-AzureRMResource $($Resource.ResourceID)"
+                Write-Warning "Could not Get-AzureRMResource $($Resource.ResourceID)"
             }
         } else {
-            Write-Verbose "No ResourceID found"
+            Write-Warning "No ResourceID found"
         }
     }
 }

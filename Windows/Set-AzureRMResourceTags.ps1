@@ -6,7 +6,7 @@ Set tags on Azure Resources from input
 Input should have a ResourceID. Tags should be in properties with names like TAG_tagname, where tagname is the key of the tag to set.
 
 #>
-[CmdletBinding(SupportsShouldProcess=$True, ConfirmImpact='Medium')]
+[CmdletBinding(SupportsShouldProcess=$True, ConfirmImpact='High')]
 param(
     [Parameter(
         HelpMessage="Azure Resources to apply tags to",
@@ -53,7 +53,9 @@ process {
                 Write-Verbose "    Found $($Tags.count) tags"
                 
                 # Update the Azure Resource
-                Set-AzureRmResource -ResourceId $AzureResource.ResourceID -Tag $Tags
+                if ($PSCmdlet.ShouldProcess($AzureResource.ResourceID, "Apply tags")) {
+                    Set-AzureRmResource -ResourceId $AzureResource.ResourceID -Tag $Tags -Force -Confirm:$False
+                }
             } else {
                 Write-Warning "Could not Get-AzureRMResource $($Resource.ResourceID)"
             }

@@ -14,37 +14,38 @@ pscustomobject[]
 [CmdletBinding()]
 param(
     [Switch]
-    $VirtualMachines
-)
-
-begin {
-    # Don't report on these tags
-    $IgnoreTags = @(
-        "ms-resource-usage"
-        "creationSource"
-        "RSVaultBackup"
-    )
-
-    # Get a list of all Tag Names (Keys)
-    $TagNames = (Get-AzureRmTag).Name | Where-Object {!$IgnoreTags.Contains($_)}
-
-    # List of properties to return for each resource
+    $VirtualMachines,
+    
+    [Parameter(HelpMessage="String to prefix tag name with.")]
+    [string]
+    $TagPrefix = "TAG_",
+    
+    [Parameter(HelpMessage="List of tag names which will not be returned.")]
+    [string[]]
+    $IgnoreTags = @(),
+    
+    [Parameter(HelpMessage="List of properties to return for each resource.")]
+    [string[]]
     $Properties = @(
         "ResourceName"
         "ResourceGroupName"
         "ResourceID"
     )
+)
+
+begin {
+    # Get a list of all Tag Names (Keys)
+    $TagNames = (Get-AzureRmTag).Name | Where-Object {!$IgnoreTags.Contains($_)}
 
     # Array of custom objects to return
     $Resources = @()
 
     $VirtualMachinesFilter = {$_.ResourceType -eq "Microsoft.Compute/virtualMachines"}
     $AllFilter = {$_}
+    $Filter = $AllFilter
 
     if ($VirtualMachines) {
         $Filter = $VirtualMachinesFilter
-    } else {
-        $Filter = $AllFilter
     }
 }
 
@@ -62,7 +63,7 @@ process {
 
         # Add a member for each TagName
         foreach ($TagName in $TagNames) {
-            $Object | Add-Member Noteproperty "TAG_$TagName" $Resource.Tags.$TagName
+            $Object | Add-Member Noteproperty "$TagPrefix$TagName" $Resource.Tags.$TagName
         }
 
         $Resources += $Object

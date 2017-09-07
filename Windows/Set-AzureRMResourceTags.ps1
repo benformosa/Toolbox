@@ -6,20 +6,22 @@ Set tags on Azure Resources from input
 Input should have a ResourceID. Tags should be in properties with names like TAG_tagname, where tagname is the key of the tag to set.
 
 #>
-[CmdletBinding(SupportsShouldProcess = $True)]
+[CmdletBinding(SupportsShouldProcess=$True, ConfirmImpact='Medium')]
 param(
     [Parameter(
+        HelpMessage="Azure Resources to apply tags to",
         Position=0, 
         Mandatory=$true, 
         ValueFromPipeline=$true,
         ValueFromPipelineByPropertyName=$true)
     ]
-    [object[]] $Resources
-)
-
-begin {
+    [object[]]
+    $Resources,
+    
+    [Parameter(HelpMessage="String which tag names are prefixed with.")]
+    [string]
     $TagPrefix = "TAG_"
-}
+)
 
 process {
     foreach ($Resource in $Resources) {

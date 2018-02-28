@@ -78,5 +78,5 @@ function snowball-ls-bytes ($obj) {
 
 # Show the total size of a snowball directory
 function snowball-du ([string] $path) {
-    snowball-ls-bytes $(snowball-ls-recursive $path) | Select @{N="Path"; E={$path}}, Megabytes, Bytes
+    snowball-ls-bytes $(snowball-ls-recursive $path) | Select @{N="Path"; E={$path}}, Gigabytes, Megabytes, Bytes
 }

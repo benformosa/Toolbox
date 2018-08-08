@@ -5,25 +5,46 @@
 
 import argparse
 import calendar
-from datetime import datetime
+import datetime
+import dateutil.relativedelta
 
-now = datetime.now()
+def nthday(nth, day, mdate):
+    # Generate calendar
+    cal = calendar.monthcalendar(mdate.year, mdate.month)
+    # Get all the specified days
+    days = [week[day - 1] for week in cal]
+    # Remove any zeros (zeros indicate that week doesn't include that day)
+    days = [x for x in days if x != 0]
+    # Get the nth day
+    return days[nth - 1]
+
+now = datetime.date.today()
 
 parser = argparse.ArgumentParser(description='Get the Nth day of the month in ISO 8601 format')
 parser.add_argument('nth', help='Instance of the day in the month')
 parser.add_argument('day', help='Number of the day. 1 is Monday')
-parser.add_argument('--year','-y', default=now.year)
 parser.add_argument('--month','-m', default=now.month)
+parser.add_argument('--year','-y', default=now.year)
+parser.add_argument('--past','-p', action='store_true', help='If the output date would be in the future, return the Nth day of the previous month')
 args = parser.parse_args()
 
-# generate calendar
-cal = calendar.monthcalendar(int(args.year), int(args.month))
-# get all the specified days
-days = [week[int(args.day) - 1] for week in cal]
-# remove any zeros indicating that week doesn't include that day
-days = [x for x in days if x != 0]
-# get the nth day
-date = days[int(args.nth) - 1]
+# Parse inputs into ints
+nth = int(args.nth)
+day = int(args.day)
+month = int(args.month)
+year = int(args.year)
+
+# Date object to represent the month
+mdate = datetime.date(year, month, 1)
+
+# Calulate the Nth day
+date = nthday(nth, day, mdate)
+
+# If past option set, check if the date is in the future.
+if bool(args.past) and (datetime.date(year, month, date) > now):
+    # Repeat for previous month
+    mdate = mdate - dateutil.relativedelta.relativedelta(months=1)
+    date = nthday(nth, day, mdate)
 
 # Print in ISO 8601 format
-print("{:04d}-{:02d}-{:02d}".format(int(args.year), int(args.month), date))
+print("{:04d}-{:02d}-{:02d}".format(mdate.year, mdate.month, date))

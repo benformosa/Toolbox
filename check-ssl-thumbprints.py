@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 """
 Given a list of hostnames, get the thumbprint of the SSL certificate
 """
@@ -29,7 +29,8 @@ for line in fileinput.input():
         # Get the certificate as a DER-encoded byte sequence
         cert = conn.getpeercert(binary_form=True)
         # Load the certificate
-        x509 = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_ASN1, cert)
+        x509 = OpenSSL.crypto.load_certificate(
+                OpenSSL.crypto.FILETYPE_ASN1, cert)
         # Get the certificate details
         cn = x509.get_subject().commonName
         digest = x509.digest('sha1').decode("utf-8")

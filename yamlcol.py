@@ -4,7 +4,9 @@ import argparse
 import yaml
 import sys
 
-parser = argparse.ArgumentParser(description='Extract values for a single key from a YAML sequence of mappings')
+parser = argparse.ArgumentParser(
+        description='Extract values for a single key '
+        'from a YAML sequence of mappings')
 parser.add_argument('key', help='Extract values for this key.')
 args = parser.parse_args()
 

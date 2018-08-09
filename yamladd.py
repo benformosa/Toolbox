@@ -17,6 +17,8 @@ data = yaml.safe_load(sys.stdin)
 if type(data) is list:
     for d in data:
         d[args.key] = args.value
+
+    print "---"
     print(yaml.safe_dump(data, default_flow_style=False))
 
 else:

@@ -9,7 +9,12 @@ parser = argparse.ArgumentParser(
         'in a YAML sequence of mappings')
 parser.add_argument('key', type=str, help='Add this key')
 parser.add_argument('value', help='with this value')
-parser.add_argument('-f', '--file', type=argparse.FileType('r'), default=sys.stdin, help='YAML file to process')
+parser.add_argument(
+        '-f', '--file',
+        type=argparse.FileType('r'),
+        default=sys.stdin,
+        help='YAML file to process',
+    )
 args = parser.parse_args()
 
 # Load YAML from standard in

@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
 Report on tags applied to Azure Resources
 

@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS 
 Copies images from the Windows Spotlight hidden folder.
 

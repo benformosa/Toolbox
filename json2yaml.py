@@ -10,19 +10,21 @@ import yaml
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Convert YAML to JSON")
+    parser = argparse.ArgumentParser(description="Convert JSON to YAML")
     parser.add_argument(
         "-f",
         "--file",
         type=argparse.FileType("r"),
         default=sys.stdin,
-        help="YAML file to process",
+        help="JSON file to process",
     )
     args = parser.parse_args()
 
-    data = yaml.safe_load(args.file)
+    data = json.load(args.file)
 
-    print((json.dumps(data)))
+    print(
+        (yaml.safe_dump(data, default_flow_style=False, indent=2, explicit_start=True)),
+    )
 
 
 if __name__ == "__main__":
